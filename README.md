@@ -12,6 +12,12 @@ A real-time graphical argument mapping tool for debate hosts. Replace ad-hoc Not
 - **Notes tab** — Conversation chain tracker, quick Q&A, and a freeform notepad
 - **Light / Dark mode**
 
+![Main argument board](images/main.png)
+
+![Timeline visual](images/timeline.png)
+
+![Notes tab](images/notes.png)
+
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) (v18 or higher recommended)
