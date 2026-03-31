@@ -14,6 +14,10 @@ function uid() { return `p${_nextId++}`; }
  * @returns {import('./logic.js').Premise & { id: string }}
  */
 function makePremise(text = '') {
+  return { id: uid(), text, negated: false, isTrue: true, subPremises: [] };
+}
+
+function makeSubPremise(text = '') {
   return { id: uid(), text, negated: false, isTrue: true };
 }
 
@@ -67,6 +71,53 @@ export class ArgumentBoard {
     });
   }
 
+  // ── Sub-premise mutations ────────────────────────────────────────────────
+
+  addSubPremise(parentId) {
+    return new ArgumentBoard({
+      ...this._snapshot(),
+      premises: this.premises.map(p =>
+        p.id === parentId ? { ...p, subPremises: [...(p.subPremises || []), makeSubPremise()] } : p
+      ),
+    });
+  }
+
+  removeSubPremise(parentId, subId) {
+    return new ArgumentBoard({
+      ...this._snapshot(),
+      premises: this.premises.map(p =>
+        p.id === parentId ? { ...p, subPremises: (p.subPremises || []).filter(s => s.id !== subId) } : p
+      ),
+    });
+  }
+
+  updateSubPremiseText(parentId, subId, text) {
+    return new ArgumentBoard({
+      ...this._snapshot(),
+      premises: this.premises.map(p =>
+        p.id === parentId ? { ...p, subPremises: (p.subPremises || []).map(s => s.id === subId ? { ...s, text } : s) } : p
+      ),
+    });
+  }
+
+  toggleSubPremiseNegation(parentId, subId) {
+    return new ArgumentBoard({
+      ...this._snapshot(),
+      premises: this.premises.map(p =>
+        p.id === parentId ? { ...p, subPremises: (p.subPremises || []).map(s => s.id === subId ? { ...s, negated: !s.negated } : s) } : p
+      ),
+    });
+  }
+
+  toggleSubPremiseTruth(parentId, subId) {
+    return new ArgumentBoard({
+      ...this._snapshot(),
+      premises: this.premises.map(p =>
+        p.id === parentId ? { ...p, subPremises: (p.subPremises || []).map(s => s.id === subId ? { ...s, isTrue: !s.isTrue } : s) } : p
+      ),
+    });
+  }
+
   // ── Conclusion mutations ───────────────────────────────────────────────────
 
   updateConclusionText(text) {
@@ -111,7 +162,7 @@ export class ArgumentBoard {
 
   _snapshot() {
     return {
-      premises: this.premises.map(p => ({ ...p })),
+      premises: this.premises.map(p => ({ ...p, subPremises: (p.subPremises || []).map(s => ({ ...s })) })),
       conclusion: { ...this.conclusion },
       type: this.type,
       side: this.side,

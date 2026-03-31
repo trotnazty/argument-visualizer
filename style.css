@@ -33,6 +33,36 @@
   --accent-hover: #A3144D;
 }
 
+[data-theme="nord"] {
+  --bg:           #2E3440;
+  --surface:      #3B4252;
+  --surface-2:    #434C5E;
+  --border:       #4C566A;
+  --text:         #ECEFF4;
+  --text-muted:   #D8DEE9;
+  --accent:       #88C0D0;
+  --accent-hover: #81A1C1;
+
+  --green:   #A3BE8C;
+  --yellow:  #EBCB8B;
+  --red:     #BF616A;
+}
+
+[data-theme="nord-light"] {
+  --bg:           #ECEFF4;
+  --surface:      #E5E9F0;
+  --surface-2:    #D8DEE9;
+  --border:       #81A1C1;
+  --text:         #2E3440;
+  --text-muted:   #4C566A;
+  --accent:       #5E81AC;
+  --accent-hover: #81A1C1;
+
+  --green:   #A3BE8C;
+  --yellow:  #EBCB8B;
+  --red:     #BF616A;
+}
+
 /* ── Reset & Base ─────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -68,6 +98,11 @@ body {
   color: var(--accent);
 }
 
+.header-btns {
+  display: flex;
+  gap: 6px;
+}
+
 .theme-btn {
   background: var(--surface-2);
   color: var(--text-muted);
@@ -89,7 +124,7 @@ body {
 
 .board-root {
   width: 100%;
-  max-width: 1100px;
+  max-width: 1400px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -173,6 +208,11 @@ body {
 }
 
 .premise-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.premise-main {
   display: flex;
   align-items: center;
   gap: var(--gap);
@@ -275,6 +315,54 @@ body {
 }
 
 .remove-btn:hover { opacity: 1; color: var(--red); }
+
+/* Sub-premises */
+.sub-premises-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  padding-left: 34px;
+}
+
+.sub-premise-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+}
+
+.sub-premise-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+.sub-premise-row {
+  background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+  border-style: dashed;
+}
+
+.add-sub-premise-btn {
+  background: transparent;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity var(--transition), background var(--transition);
+  align-self: flex-start;
+}
+
+.add-sub-premise-btn:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
 
 /* Add Premise */
 .add-premise-btn {

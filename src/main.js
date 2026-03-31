@@ -8,23 +8,35 @@ import { renderBoard } from './ui.js';
 import { resetVisualsState } from './visuals.js';
 
 // ── Theme ──────────────────────────────────────────────────────────────────
-const savedTheme = localStorage.getItem('av-theme') || 'dark';
-document.documentElement.setAttribute('data-theme', savedTheme);
 
-function toggleTheme() {
-  const current = document.documentElement.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('av-theme', next);
-  renderThemeBtn();
+let palette = localStorage.getItem('av-palette') || 'default';
+let mode = localStorage.getItem('av-mode') || 'dark';
+
+function applyTheme() {
+  const theme = palette === 'nord'
+    ? (mode === 'dark' ? 'nord' : 'nord-light')
+    : mode;
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('av-palette', palette);
+  localStorage.setItem('av-mode', mode);
+  renderBtns();
 }
 
-function renderThemeBtn() {
-  const btn = document.getElementById('theme-toggle');
-  if (btn) {
-    const current = document.documentElement.getAttribute('data-theme');
-    btn.textContent = current === 'dark' ? '☀ Light' : '☾ Dark';
-  }
+function togglePalette() {
+  palette = palette === 'default' ? 'nord' : 'default';
+  applyTheme();
+}
+
+function toggleMode() {
+  mode = mode === 'dark' ? 'light' : 'dark';
+  applyTheme();
+}
+
+function renderBtns() {
+  const paletteBtn = document.getElementById('palette-toggle');
+  if (paletteBtn) paletteBtn.textContent = palette === 'default' ? '🎨 Dracula' : '❄ Nord';
+  const modeBtn = document.getElementById('theme-toggle');
+  if (modeBtn) modeBtn.textContent = mode === 'dark' ? '☾ Dark' : '☀ Light';
 }
 
 // ── State ──────────────────────────────────────────────────────────────────
@@ -49,11 +61,22 @@ function makeCallbacks(getBoard, updateFn) {
     onPremiseTextChange:        (id, text) => updateFn(getBoard().updatePremiseText(id, text)),
     onTogglePremiseNegation:    (id) => updateFn(getBoard().togglePremiseNegation(id)),
     onTogglePremiseTruth:       (id) => updateFn(getBoard().togglePremiseTruth(id)),
+    onAddSubPremise:            (parentId) => updateFn(getBoard().addSubPremise(parentId)),
+    onRemoveSubPremise:         (parentId, subId) => updateFn(getBoard().removeSubPremise(parentId, subId)),
+    onSubPremiseTextChange:     (parentId, subId, text) => updateFn(getBoard().updateSubPremiseText(parentId, subId, text)),
+    onToggleSubPremiseNegation: (parentId, subId) => updateFn(getBoard().toggleSubPremiseNegation(parentId, subId)),
+    onToggleSubPremiseTruth:    (parentId, subId) => updateFn(getBoard().toggleSubPremiseTruth(parentId, subId)),
     onConclusionTextChange:     (text) => updateFn(getBoard().updateConclusionText(text)),
     onToggleConclusionNegation: () => updateFn(getBoard().toggleConclusionNegation()),
     onToggleConclusionTruth:    () => updateFn(getBoard().toggleConclusionTruth()),
     onSetType:                  (type) => updateFn(getBoard().setType(type)),
   };
+}
+
+function resetArgument() {
+  oursBoard = new ArgumentBoard({ side: 'ours' });
+  opponentBoard = new ArgumentBoard({ side: 'opponent' });
+  render();
 }
 
 function restart() {
@@ -75,14 +98,19 @@ function render() {
       ours: makeCallbacks(() => oursBoard, updateOurs),
       opponent: makeCallbacks(() => opponentBoard, updateOpponent),
     },
+    { onResetArgument: resetArgument },
   );
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  applyTheme();
+
+  const paletteBtn = document.getElementById('palette-toggle');
+  if (paletteBtn) paletteBtn.addEventListener('click', togglePalette);
+
   const themeBtn = document.getElementById('theme-toggle');
-  if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
-  renderThemeBtn();
+  if (themeBtn) themeBtn.addEventListener('click', toggleMode);
 
   const restartBtn = document.getElementById('restart-btn');
   if (restartBtn) {

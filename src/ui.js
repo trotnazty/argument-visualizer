@@ -63,27 +63,140 @@ function createPremiseRow(premise, index, callbacks) {
   removeBtn.addEventListener('click', () => callbacks.onRemovePremise(premise.id));
 
   row.append(negBtn, truthBtn, input, removeBtn);
+
+  const main = document.createElement('div');
+  main.className = 'premise-main';
+  main.append(label, row);
+  wrapper.appendChild(main);
+
+  // Sub-premises
+  const subContainer = document.createElement('div');
+  subContainer.className = 'sub-premises-container';
+
+  (premise.subPremises || []).forEach((sub, si) => {
+    subContainer.appendChild(createSubPremiseRow(sub, index, si, premise.id, callbacks));
+  });
+
+  const addSubBtn = document.createElement('button');
+  addSubBtn.className = 'add-sub-premise-btn';
+  addSubBtn.textContent = '+';
+  addSubBtn.title = 'Add sub-premise';
+  addSubBtn.tabIndex = -1;
+  addSubBtn.addEventListener('click', () => callbacks.onAddSubPremise(premise.id));
+  subContainer.appendChild(addSubBtn);
+
+  wrapper.appendChild(subContainer);
+  return wrapper;
+}
+
+function createSubPremiseRow(sub, parentIndex, subIndex, parentId, callbacks) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'sub-premise-wrapper';
+  wrapper.dataset.subPremiseId = sub.id;
+
+  const label = document.createElement('div');
+  label.className = 'premise-label sub-premise-label';
+  label.textContent = `P${parentIndex + 1}.${subIndex + 1}`;
+
+  const row = document.createElement('div');
+  row.className = 'premise-row sub-premise-row';
+
+  const negBtn = document.createElement('button');
+  negBtn.className = `toggle-btn neg-btn${sub.negated ? ' active' : ''}`;
+  negBtn.title = 'Toggle negation (¬)';
+  negBtn.textContent = '¬';
+  negBtn.tabIndex = -1;
+  negBtn.addEventListener('click', () => callbacks.onToggleSubPremiseNegation(parentId, sub.id));
+
+  const truthBtn = document.createElement('button');
+  truthBtn.className = `toggle-btn truth-btn ${sub.isTrue ? 'true' : 'false'}`;
+  truthBtn.title = 'Toggle truth value';
+  truthBtn.textContent = sub.isTrue ? 'T' : 'F';
+  truthBtn.tabIndex = -1;
+  truthBtn.addEventListener('click', () => callbacks.onToggleSubPremiseTruth(parentId, sub.id));
+
+  const input = document.createElement('textarea');
+  input.className = 'premise-input';
+  input.placeholder = 'Enter sub-premise…';
+  input.value = sub.text;
+  input.rows = 1;
+  input.dataset.inputId = sub.id;
+  input.addEventListener('input', e => {
+    callbacks.onSubPremiseTextChange(parentId, sub.id, e.target.value);
+    e.target.style.height = 'auto';
+    e.target.style.height = e.target.scrollHeight + 'px';
+  });
+
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'remove-btn';
+  removeBtn.title = 'Remove sub-premise';
+  removeBtn.textContent = '×';
+  removeBtn.tabIndex = -1;
+  removeBtn.addEventListener('click', () => callbacks.onRemoveSubPremise(parentId, sub.id));
+
+  row.append(negBtn, truthBtn, input, removeBtn);
   wrapper.append(label, row);
   return wrapper;
 }
 
-function patchPremiseRow(wrapper, premise, index) {
-  const label = wrapper.querySelector('.premise-label');
+function patchPremiseRow(wrapper, premise, index, callbacks) {
+  const label = wrapper.querySelector('.premise-main > .premise-label');
   if (label) label.textContent = `P${index + 1}`;
 
-  const negBtn = wrapper.querySelector('.neg-btn');
+  const negBtn = wrapper.querySelector('.premise-main > .premise-row > .neg-btn');
   if (negBtn) setClass(negBtn, 'active', premise.negated);
 
-  const truthBtn = wrapper.querySelector('.truth-btn');
+  const truthBtn = wrapper.querySelector('.premise-main > .premise-row > .truth-btn');
   if (truthBtn) {
     truthBtn.textContent = premise.isTrue ? 'T' : 'F';
     setClass(truthBtn, 'true', premise.isTrue);
     setClass(truthBtn, 'false', !premise.isTrue);
   }
 
-  const input = wrapper.querySelector('textarea');
+  const input = wrapper.querySelector('.premise-main > .premise-row > textarea');
   if (input && document.activeElement !== input) {
     input.value = premise.text;
+  }
+
+  // Patch sub-premises in place to preserve focus
+  const subContainer = wrapper.querySelector('.sub-premises-container');
+  if (subContainer) {
+    const addBtn = subContainer.querySelector('.add-sub-premise-btn');
+    const existingSubs = [...subContainer.querySelectorAll('.sub-premise-wrapper')];
+    const newSubs = premise.subPremises || [];
+    const newIds = newSubs.map(s => s.id);
+
+    // Remove deleted sub-premises
+    existingSubs.forEach(w => {
+      if (!newIds.includes(w.dataset.subPremiseId)) w.remove();
+    });
+
+    // Patch existing or create new
+    newSubs.forEach((sub, si) => {
+      const existing = subContainer.querySelector(`[data-sub-premise-id="${sub.id}"]`);
+      if (existing) {
+        // Patch in place
+        const lbl = existing.querySelector('.sub-premise-label');
+        if (lbl) lbl.textContent = `P${index + 1}.${si + 1}`;
+
+        const neg = existing.querySelector('.neg-btn');
+        if (neg) setClass(neg, 'active', sub.negated);
+
+        const truth = existing.querySelector('.truth-btn');
+        if (truth) {
+          truth.textContent = sub.isTrue ? 'T' : 'F';
+          setClass(truth, 'true', sub.isTrue);
+          setClass(truth, 'false', !sub.isTrue);
+        }
+
+        const inp = existing.querySelector('textarea');
+        if (inp && document.activeElement !== inp) {
+          inp.value = sub.text;
+        }
+      } else {
+        subContainer.insertBefore(createSubPremiseRow(sub, index, si, premise.id, callbacks), addBtn);
+      }
+    });
   }
 }
 
@@ -256,7 +369,7 @@ function patchSidePanel(panel, state) {
     state.premises.forEach((p, i) => {
       const existing = qs(container, `[data-premise-id="${p.id}"]`);
       if (existing) {
-        patchPremiseRow(existing, p, i);
+        patchPremiseRow(existing, p, i, panel._callbacks);
       } else {
         const newRow = createPremiseRow(p, i, panel._callbacks);
         container.insertBefore(newRow, addBtn);
@@ -284,7 +397,7 @@ function patchSidePanel(panel, state) {
  * @param {{ ours: Object, opponent: Object }} states
  * @param {{ ours: Object, opponent: Object }} callbackSets
  */
-export function renderBoard(root, states, callbackSets) {
+export function renderBoard(root, states, callbackSets, options = {}) {
   const isFirstRender = !qs(root, '#tab-bar');
 
   if (isFirstRender) {
@@ -480,12 +593,16 @@ export function renderBoard(root, states, callbackSets) {
       const refreshBtn = e.target.closest('.tab-refresh-btn');
       if (refreshBtn) {
         const tabId = refreshBtn.dataset.tabRefresh;
-        const tabContent = qs(root, `#tab-${tabId}`);
-        if (tabContent) {
-          tabContent.querySelectorAll('textarea, input[type="text"]').forEach(el => {
-            el.value = '';
-            el.style.height = '';
-          });
+        if (tabId === 'argument' && options.onResetArgument) {
+          options.onResetArgument();
+        } else {
+          const tabContent = qs(root, `#tab-${tabId}`);
+          if (tabContent) {
+            tabContent.querySelectorAll('textarea, input[type="text"]').forEach(el => {
+              el.value = '';
+              el.style.height = '';
+            });
+          }
         }
         return;
       }
@@ -506,9 +623,23 @@ export function renderBoard(root, states, callbackSets) {
   }
 
   // ── Patch ───────────────────────────────────────────────────────────────
+  const dualPanel = qs(root, '.dual-panel');
   const oursPanel = qs(root, '.side-panel.side-ours');
-  if (oursPanel) patchSidePanel(oursPanel, states.ours);
-
   const opponentPanel = qs(root, '.side-panel.side-opponent');
+
+  // If premise IDs don't match (e.g. after reset), rebuild the panels
+  const oursFirstId = oursPanel && oursPanel.querySelector('[data-premise-id]');
+  const stateFirstId = states.ours.premises[0]?.id;
+  if (dualPanel && oursFirstId && stateFirstId && oursFirstId.dataset.premiseId !== stateFirstId) {
+    dualPanel.innerHTML = '';
+    const newOurs = createSidePanel('ours', states.ours, callbackSets.ours);
+    newOurs._callbacks = callbackSets.ours;
+    const newOpp = createSidePanel('opponent', states.opponent, callbackSets.opponent);
+    newOpp._callbacks = callbackSets.opponent;
+    dualPanel.append(newOurs, newOpp);
+    return;
+  }
+
+  if (oursPanel) patchSidePanel(oursPanel, states.ours);
   if (opponentPanel) patchSidePanel(opponentPanel, states.opponent);
 }
