@@ -8,14 +8,15 @@ const W = 600;
 const H = 360;
 
 const DIAGRAM_TYPES = [
-  { id: 'venn', label: 'Venn Diagram' },
   { id: 'argument-map', label: 'Argument Map' },
-  { id: 'timeline', label: 'Timeline' },
+  { id: 'circular', label: 'Circular Argument' },
   { id: 'comparison', label: 'Comparison' },
   { id: 'flowchart', label: 'Flowchart' },
-  { id: 'strength', label: 'Strength Meter' },
-  { id: 'circular', label: 'Circular Argument' },
   { id: 'is-ought', label: 'Is–Ought' },
+  { id: 'strength', label: 'Strength Meter' },
+  { id: 'timeline', label: 'Timeline' },
+  { id: 'truth-table', label: 'Truth Table' },
+  { id: 'venn', label: 'Venn Diagram' },
 ];
 
 // ── SVG Helpers ────────────────────────────────────────────────────────────
@@ -1588,6 +1589,109 @@ function renderIsOught(canvas, state) {
   svg.appendChild(qMark);
 }
 
+// ── Truth Table Editor ────────────────────────────────────────────────────
+
+function createTruthTableEditor(container) {
+  const state = getOrCreateState('truth-table', () => ({
+    propositions: ['P', 'Q'],
+    results: {},
+  }));
+
+  const controls = document.createElement('div');
+  controls.className = 'visual-controls';
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'visual-ctrl-btn';
+  addBtn.textContent = '+ Add Proposition';
+  addBtn.addEventListener('click', () => {
+    const next = String.fromCharCode(65 + state.propositions.length); // A=65
+    if (state.propositions.length < 8) {
+      state.propositions.push(next);
+      renderTruthTable(tableWrap, state);
+    }
+  });
+
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'visual-ctrl-btn danger';
+  removeBtn.textContent = '− Remove Last';
+  removeBtn.addEventListener('click', () => {
+    if (state.propositions.length > 1) {
+      state.propositions.pop();
+      renderTruthTable(tableWrap, state);
+    }
+  });
+
+  controls.append(addBtn, removeBtn);
+
+  const tableWrap = document.createElement('div');
+  tableWrap.className = 'truth-table-wrap';
+
+  container.append(controls, tableWrap);
+  renderTruthTable(tableWrap, state);
+}
+
+function renderTruthTable(wrap, state) {
+  wrap.innerHTML = '';
+  const n = state.propositions.length;
+  const rowCount = 1 << n; // 2^n
+
+  const table = document.createElement('table');
+  table.className = 'truth-table';
+
+  // Header
+  const thead = document.createElement('thead');
+  const headRow = document.createElement('tr');
+  state.propositions.forEach((p, i) => {
+    const th = document.createElement('th');
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.className = 'truth-table-header-input';
+    inp.value = p;
+    inp.maxLength = 12;
+    inp.addEventListener('input', e => { state.propositions[i] = e.target.value; });
+    th.appendChild(inp);
+    headRow.appendChild(th);
+  });
+  const thResult = document.createElement('th');
+  thResult.textContent = 'Result';
+  thResult.className = 'truth-table-result-header';
+  headRow.appendChild(thResult);
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  // Body — enumerate all combinations
+  const tbody = document.createElement('tbody');
+  for (let r = 0; r < rowCount; r++) {
+    const tr = document.createElement('tr');
+    for (let c = 0; c < n; c++) {
+      const td = document.createElement('td');
+      const bit = (r >> (n - 1 - c)) & 1;
+      const val = bit === 0;
+      td.textContent = val ? 'T' : 'F';
+      td.className = val ? 'truth-val-true' : 'truth-val-false';
+      tr.appendChild(td);
+    }
+    // Result column — editable toggle
+    const tdRes = document.createElement('td');
+    const resultKey = String(r);
+    const curVal = state.results[resultKey];
+    tdRes.textContent = curVal === true ? 'T' : curVal === false ? 'F' : '—';
+    tdRes.className = 'truth-result-cell ' +
+      (curVal === true ? 'truth-val-true' : curVal === false ? 'truth-val-false' : 'truth-val-unset');
+    tdRes.addEventListener('click', () => {
+      if (curVal === undefined || curVal === null) state.results[resultKey] = true;
+      else if (curVal === true) state.results[resultKey] = false;
+      else delete state.results[resultKey];
+      renderTruthTable(wrap, state);
+    });
+    tr.appendChild(tdRes);
+    tbody.appendChild(tr);
+  }
+
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+}
+
 // ── Editor Registry ────────────────────────────────────────────────────────
 
 const editors = {
@@ -1599,6 +1703,7 @@ const editors = {
   'strength': createStrengthEditor,
   'circular': createCircularEditor,
   'is-ought': createIsOughtEditor,
+  'truth-table': createTruthTableEditor,
 };
 
 // ── Public API ─────────────────────────────────────────────────────────────
@@ -1642,6 +1747,33 @@ export function createVisualsPanel() {
 export function resetVisualsState() {
   for (const key of Object.keys(savedStates)) {
     delete savedStates[key];
+  }
+}
+
+export function refreshVisuals() {
+  // Preserve truth table proposition names, but clear results
+  const ttState = savedStates['truth-table'];
+  const ttProps = ttState ? [...ttState.propositions] : null;
+
+  // Wipe all visual states
+  for (const key of Object.keys(savedStates)) {
+    delete savedStates[key];
+  }
+
+  // Restore truth table propositions with empty results
+  if (ttProps) {
+    savedStates['truth-table'] = { propositions: ttProps, results: {} };
+  }
+
+  // Re-render the active editor
+  const mount = document.getElementById('editor-mount');
+  const activeBtn = document.querySelector('.diagram-btn.active');
+  if (mount && activeBtn) {
+    const type = activeBtn.dataset.diagramType;
+    if (editors[type]) {
+      mount.innerHTML = '';
+      editors[type](mount);
+    }
   }
 }
 

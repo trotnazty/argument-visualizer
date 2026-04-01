@@ -98,6 +98,21 @@ body {
   color: var(--accent);
 }
 
+.app-title-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.2;
+}
+
+.app-byline {
+  font-size: 0.6rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  opacity: 0.5;
+  letter-spacing: 0.03em;
+}
+
 .header-btns {
   display: flex;
   gap: 6px;
@@ -831,6 +846,73 @@ body {
   color: var(--accent);
   min-width: 16px;
   text-align: center;
+}
+
+/* ── Truth Table ──────────────────────────────────────────────────────────── */
+.truth-table-wrap {
+  overflow-x: auto;
+}
+
+.truth-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.truth-table th,
+.truth-table td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.truth-table th {
+  background: var(--surface-2);
+}
+
+.truth-table-header-input {
+  background: transparent;
+  color: var(--accent);
+  border: none;
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  width: 80px;
+}
+
+.truth-table-result-header {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.truth-val-true {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.truth-val-false {
+  color: var(--red);
+  font-weight: 700;
+}
+
+.truth-val-unset {
+  color: var(--text-muted);
+}
+
+.truth-result-cell {
+  cursor: pointer;
+  user-select: none;
+  transition: background 200ms ease;
+}
+
+.truth-result-cell:hover {
+  background: var(--surface-2);
 }
 
 /* ── Notes Tab ───────────────────────────────────────────────────────────── */

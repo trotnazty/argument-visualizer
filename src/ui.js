@@ -3,7 +3,7 @@
  * Patches existing DOM elements in place to avoid focus loss on re-render.
  */
 
-import { createVisualsPanel } from './visuals.js';
+import { createVisualsPanel, refreshVisuals } from './visuals.js';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -595,6 +595,8 @@ export function renderBoard(root, states, callbackSets, options = {}) {
         const tabId = refreshBtn.dataset.tabRefresh;
         if (tabId === 'argument' && options.onResetArgument) {
           options.onResetArgument();
+        } else if (tabId === 'visuals') {
+          refreshVisuals();
         } else {
           const tabContent = qs(root, `#tab-${tabId}`);
           if (tabContent) {
