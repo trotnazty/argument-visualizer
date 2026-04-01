@@ -964,14 +964,14 @@ body {
   border-color: color-mix(in srgb, var(--green) 40%, transparent);
   background: color-mix(in srgb, var(--green) 5%, transparent);
   align-self: flex-start;
-  margin-right: 24px;
+  width: 50%;
 }
 
 .convo-opponent {
   border-color: color-mix(in srgb, var(--red) 40%, transparent);
   background: color-mix(in srgb, var(--red) 5%, transparent);
   align-self: flex-end;
-  margin-left: 24px;
+  width: 50%;
 }
 
 .convo-label {
@@ -1027,10 +1027,52 @@ body {
   flex-direction: column;
 }
 
-.notes-textarea {
+/* ── Rich Text Toolbar ──────────────────────────────────────────────────── */
+.rich-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  background: transparent;
+  margin-bottom: 4px;
+}
+
+.rich-btn {
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  font-size: 0.8rem;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 200ms ease, color 200ms ease;
+}
+
+.rich-btn:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+.rich-btn-bold { font-weight: 700; }
+.rich-btn-italic { font-style: italic; }
+.rich-btn-underline { text-decoration: underline; }
+.rich-btn-strike { text-decoration: line-through; }
+
+.rich-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+/* ── Contenteditable Notepad ───────────────────────────────────────────── */
+.notes-editor {
   min-height: 300px;
-  resize: none;
-  overflow: hidden;
   background: var(--bg);
   color: var(--text);
   border: 1px solid var(--border);
@@ -1043,10 +1085,30 @@ body {
   transition: border-color var(--transition);
 }
 
-.notes-textarea:focus {
+.notes-editor:focus {
   border-color: var(--accent);
 }
 
-.notes-textarea::placeholder {
+.notes-editor:empty::before {
+  content: attr(data-placeholder);
   color: var(--text-muted);
+  pointer-events: none;
+}
+
+.notes-editor blockquote {
+  border-left: 3px solid var(--accent);
+  margin: 4px 0;
+  padding: 2px 12px;
+  color: var(--text-muted);
+}
+
+.notes-editor h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 8px 0 4px;
+}
+
+.notes-editor ul, .notes-editor ol {
+  margin: 4px 0;
+  padding-left: 24px;
 }

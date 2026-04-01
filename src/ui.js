@@ -574,16 +574,54 @@ export function renderBoard(root, states, callbackSets, options = {}) {
     notepadTitle.textContent = 'Notepad';
     notesPanel.appendChild(notepadTitle);
 
-    const notesTextarea = document.createElement('textarea');
-    notesTextarea.className = 'notes-textarea';
-    notesTextarea.placeholder = 'Take notes here…';
-    notesTextarea.spellcheck = true;
-    notesTextarea.addEventListener('input', () => {
-      notesTextarea.style.height = 'auto';
-      notesTextarea.style.height = notesTextarea.scrollHeight + 'px';
+    // Rich text toolbar
+    const toolbar = document.createElement('div');
+    toolbar.className = 'rich-toolbar';
+
+    const actions = [
+      { cmd: 'bold', icon: 'B', title: 'Bold', cls: 'rich-btn-bold' },
+      { cmd: 'italic', icon: 'I', title: 'Italic', cls: 'rich-btn-italic' },
+      { cmd: 'underline', icon: 'U', title: 'Underline', cls: 'rich-btn-underline' },
+      { cmd: 'strikeThrough', icon: 'S', title: 'Strikethrough', cls: 'rich-btn-strike' },
+      { sep: true },
+      { cmd: 'insertUnorderedList', icon: '•', title: 'Bullet list' },
+      { cmd: 'insertOrderedList', icon: '1.', title: 'Numbered list' },
+      { sep: true },
+      { cmd: 'formatBlock', value: 'H3', icon: 'H', title: 'Heading' },
+      { cmd: 'formatBlock', value: 'BLOCKQUOTE', icon: '"', title: 'Quote' },
+      { sep: true },
+      { cmd: 'removeFormat', icon: '⌧', title: 'Clear formatting' },
+    ];
+
+    actions.forEach(a => {
+      if (a.sep) {
+        const sep = document.createElement('span');
+        sep.className = 'rich-sep';
+        toolbar.appendChild(sep);
+        return;
+      }
+      const btn = document.createElement('button');
+      btn.className = `rich-btn${a.cls ? ' ' + a.cls : ''}`;
+      btn.textContent = a.icon;
+      btn.title = a.title;
+      btn.tabIndex = -1;
+      btn.addEventListener('mousedown', e => {
+        e.preventDefault();
+        document.execCommand(a.cmd, false, a.value || null);
+      });
+      toolbar.appendChild(btn);
     });
 
-    notesPanel.appendChild(notesTextarea);
+    notesPanel.appendChild(toolbar);
+
+    // Contenteditable notepad
+    const notesEditor = document.createElement('div');
+    notesEditor.className = 'notes-editor';
+    notesEditor.contentEditable = 'true';
+    notesEditor.spellcheck = true;
+    notesEditor.dataset.placeholder = 'Take notes here…';
+
+    notesPanel.appendChild(notesEditor);
     notesContent.appendChild(notesPanel);
     root.appendChild(notesContent);
 
@@ -603,6 +641,9 @@ export function renderBoard(root, states, callbackSets, options = {}) {
             tabContent.querySelectorAll('textarea, input[type="text"]').forEach(el => {
               el.value = '';
               el.style.height = '';
+            });
+            tabContent.querySelectorAll('.notes-editor').forEach(el => {
+              el.innerHTML = '';
             });
           }
         }
