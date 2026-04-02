@@ -10,7 +10,7 @@ A real-time graphical argument mapping tool for debate hosts. Replace ad-hoc Not
 - **Live validity bar** — Color-coded feedback (green/yellow/red) with real-time evaluation
 - **Visual tools** — Venn diagrams, argument maps, timelines, comparison tables, flowcharts, strength meters, circular argument detector, Is-Ought analysis
 - **Notes tab** — Conversation chain tracker, quick Q&A, and a freeform notepad
-- **Light / Dark mode**
+- **Two themes** — Dracula and Nord, each with dark and light modes
 
 ![Main argument board](images/main.png)
 
