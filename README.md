@@ -18,6 +18,14 @@ A real-time graphical argument mapping tool for debate hosts. Replace ad-hoc Not
 
 ![Notes tab](images/notes.png)
 
+## Resetting the Board
+
+There are three levels of reset:
+
+- **Tab refresh** (circular arrow on each tab) — Clears only the fields on that tab. For example, refreshing the Argument tab resets premises, conclusion, and the notepad, but leaves Visuals and Notes untouched.
+- **Restart button** (on-screen) — Resets everything except the topic/title field, so you can start a new argument under the same topic.
+- **Full browser refresh** (F5 / Ctrl+R) — Completely resets the entire app back to its default state.
+
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) (v18 or higher recommended)
