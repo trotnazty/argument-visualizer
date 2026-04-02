@@ -14,7 +14,7 @@ function uid() { return `p${_nextId++}`; }
  * @returns {import('./logic.js').Premise & { id: string }}
  */
 function makePremise(text = '') {
-  return { id: uid(), text, negated: false, isTrue: true, subPremises: [] };
+  return { id: uid(), text, negated: false, isTrue: true, fallacy: 'none', subPremises: [] };
 }
 
 function makeSubPremise(text = '') {
@@ -68,6 +68,13 @@ export class ArgumentBoard {
     return new ArgumentBoard({
       ...this._snapshot(),
       premises: this.premises.map(p => p.id === id ? { ...p, isTrue: !p.isTrue } : p),
+    });
+  }
+
+  setPremiseFallacy(id, fallacy) {
+    return new ArgumentBoard({
+      ...this._snapshot(),
+      premises: this.premises.map(p => p.id === id ? { ...p, fallacy } : p),
     });
   }
 

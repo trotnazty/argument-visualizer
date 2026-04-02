@@ -61,6 +61,7 @@ function makeCallbacks(getBoard, updateFn) {
     onPremiseTextChange:        (id, text) => updateFn(getBoard().updatePremiseText(id, text)),
     onTogglePremiseNegation:    (id) => updateFn(getBoard().togglePremiseNegation(id)),
     onTogglePremiseTruth:       (id) => updateFn(getBoard().togglePremiseTruth(id)),
+    onSetPremiseFallacy:        (id, fallacy) => updateFn(getBoard().setPremiseFallacy(id, fallacy)),
     onAddSubPremise:            (parentId) => updateFn(getBoard().addSubPremise(parentId)),
     onRemoveSubPremise:         (parentId, subId) => updateFn(getBoard().removeSubPremise(parentId, subId)),
     onSubPremiseTextChange:     (parentId, subId, text) => updateFn(getBoard().updateSubPremiseText(parentId, subId, text)),

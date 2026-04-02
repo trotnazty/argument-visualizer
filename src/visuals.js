@@ -491,6 +491,7 @@ function renderTimeline(canvas, state, inputList) {
   const startX = padX;
   const endX = W - padX;
   const span = endX - startX;
+  const midX = startX + span / 2; // BC/AD divider
 
   // Main timeline line
   svg.appendChild(svgEl('line', {
@@ -498,11 +499,41 @@ function renderTimeline(canvas, state, inputList) {
     stroke: 'var(--border)', 'stroke-width': 2,
   }));
 
-  // Arrow at end
+  // Arrow at left (BC direction)
+  svg.appendChild(svgEl('polygon', {
+    points: `${startX - 20},${lineY} ${startX - 12},${lineY - 5} ${startX - 12},${lineY + 5}`,
+    fill: 'var(--border)',
+  }));
+
+  // Arrow at right (AD direction)
   svg.appendChild(svgEl('polygon', {
     points: `${endX + 20},${lineY} ${endX + 12},${lineY - 5} ${endX + 12},${lineY + 5}`,
     fill: 'var(--border)',
   }));
+
+  // BC/AD center divider
+  svg.appendChild(svgEl('line', {
+    x1: midX, y1: lineY - 16, x2: midX, y2: lineY + 16,
+    stroke: 'var(--accent)', 'stroke-width': 2.5,
+  }));
+
+  // BC label (left)
+  const bcLabel = svgEl('text', {
+    x: midX - 18, y: lineY + 30,
+    'text-anchor': 'end', fill: 'var(--fg)', 'font-size': '11',
+    'font-weight': '700', 'font-family': 'var(--font-mono)', opacity: 0.6,
+  });
+  bcLabel.textContent = 'BC';
+  svg.appendChild(bcLabel);
+
+  // AD label (right)
+  const adLabel = svgEl('text', {
+    x: midX + 18, y: lineY + 30,
+    'text-anchor': 'start', fill: 'var(--fg)', 'font-size': '11',
+    'font-weight': '700', 'font-family': 'var(--font-mono)', opacity: 0.6,
+  });
+  adLabel.textContent = 'AD';
+  svg.appendChild(adLabel);
 
   // Compute display positions with minimum spacing so dots never overlap
   const minGap = 28; // minimum pixels between adjacent points

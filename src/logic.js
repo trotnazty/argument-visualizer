@@ -28,6 +28,42 @@
  */
 
 /**
+ * Canonical list of logical fallacies for tagging.
+ */
+export const FALLACIES = [
+  { id: 'none', label: 'No Fallacy' },
+  { id: 'ad-hominem', label: 'Ad Hominem' },
+  { id: 'appeal-to-authority', label: 'Appeal to Authority' },
+  { id: 'appeal-to-emotion', label: 'Appeal to Emotion' },
+  { id: 'bandwagon', label: 'Bandwagon' },
+  { id: 'burden-of-proof', label: 'Burden of Proof' },
+  { id: 'circular-reasoning', label: 'Circular Reasoning' },
+  { id: 'equivocation', label: 'Equivocation' },
+  { id: 'false-cause', label: 'False Cause' },
+  { id: 'false-dilemma', label: 'False Dilemma' },
+  { id: 'hasty-generalization', label: 'Hasty Generalization' },
+  { id: 'loaded-question', label: 'Loaded Question' },
+  { id: 'red-herring', label: 'Red Herring' },
+  { id: 'slippery-slope', label: 'Slippery Slope' },
+  { id: 'straw-man', label: 'Straw Man' },
+  { id: 'tu-quoque', label: 'Tu Quoque' },
+];
+
+/**
+ * Count premises tagged with a fallacy.
+ * @param {Premise[]} premises
+ * @returns {{ count: number, labels: string[] }}
+ */
+export function countFallacies(premises) {
+  const tagged = premises.filter(p => p.fallacy && p.fallacy !== 'none');
+  const labels = tagged.map(p => {
+    const f = FALLACIES.find(f => f.id === p.fallacy);
+    return f ? f.label : p.fallacy;
+  });
+  return { count: tagged.length, labels };
+}
+
+/**
  * Apply negation to a truth value.
  * @param {boolean} isTrue
  * @param {boolean} negated
@@ -128,13 +164,31 @@ export function evaluateArgument(arg) {
   if (!arg.premises || arg.premises.length === 0) {
     return { verdict: 'No Premises', detail: 'Add at least one premise to evaluate.', score: 0, color: 'red' };
   }
+
+  let result;
   switch (arg.type) {
-    case 'deductive':   return evaluateDeductive(arg);
-    case 'inductive':   return evaluateInductive(arg);
-    case 'abductive':   return evaluateAbductive(arg);
-    case 'analogical':  return evaluateAnalogical(arg);
-    default:            return evaluateDeductive(arg);
+    case 'deductive':   result = evaluateDeductive(arg); break;
+    case 'inductive':   result = evaluateInductive(arg); break;
+    case 'abductive':   result = evaluateAbductive(arg); break;
+    case 'analogical':  result = evaluateAnalogical(arg); break;
+    default:            result = evaluateDeductive(arg);
   }
+
+  // Flag fallacies in the evaluation result
+  const { count, labels } = countFallacies(arg.premises);
+  if (count > 0) {
+    result.fallacyCount = count;
+    result.fallacyLabels = labels;
+    result.detail += ` ⚠ ${count} fallac${count === 1 ? 'y' : 'ies'} tagged: ${labels.join(', ')}.`;
+    // Downgrade color if not already red
+    if (result.color === 'green') {
+      result.color = 'yellow';
+    }
+    // Reduce score slightly per fallacy
+    result.score = Math.max(0.05, result.score - count * 0.1);
+  }
+
+  return result;
 }
 
 /**

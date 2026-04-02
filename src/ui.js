@@ -4,6 +4,7 @@
  */
 
 import { createVisualsPanel, refreshVisuals } from './visuals.js';
+import { FALLACIES } from './logic.js';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -55,6 +56,32 @@ function createPremiseRow(premise, index, callbacks) {
     e.target.style.height = e.target.scrollHeight + 'px';
   });
 
+  // Fallacy dropdown
+  const fallacySelect = document.createElement('select');
+  fallacySelect.className = 'fallacy-select';
+  fallacySelect.title = 'Tag a fallacy';
+  fallacySelect.tabIndex = -1;
+  FALLACIES.forEach(f => {
+    const opt = document.createElement('option');
+    opt.value = f.id;
+    opt.textContent = f.id === 'none' ? '—' : f.label;
+    opt.selected = premise.fallacy === f.id;
+    fallacySelect.appendChild(opt);
+  });
+  if (premise.fallacy && premise.fallacy !== 'none') {
+    fallacySelect.classList.add('has-fallacy');
+  }
+  fallacySelect.addEventListener('change', e => callbacks.onSetPremiseFallacy(premise.id, e.target.value));
+
+  // Fallacy badge (shown when a fallacy is selected)
+  const fallacyBadge = document.createElement('span');
+  fallacyBadge.className = 'fallacy-badge';
+  if (premise.fallacy && premise.fallacy !== 'none') {
+    const f = FALLACIES.find(f => f.id === premise.fallacy);
+    fallacyBadge.textContent = f ? f.label : premise.fallacy;
+    fallacyBadge.classList.add('visible');
+  }
+
   const removeBtn = document.createElement('button');
   removeBtn.className = 'remove-btn';
   removeBtn.title = 'Remove premise';
@@ -62,12 +89,17 @@ function createPremiseRow(premise, index, callbacks) {
   removeBtn.tabIndex = -1;
   removeBtn.addEventListener('click', () => callbacks.onRemovePremise(premise.id));
 
-  row.append(negBtn, truthBtn, input, removeBtn);
+  row.append(negBtn, truthBtn, input, fallacySelect, removeBtn);
 
   const main = document.createElement('div');
   main.className = 'premise-main';
   main.append(label, row);
   wrapper.appendChild(main);
+
+  // Fallacy badge row
+  if (premise.fallacy && premise.fallacy !== 'none') {
+    wrapper.appendChild(fallacyBadge);
+  }
 
   // Sub-premises
   const subContainer = document.createElement('div');
@@ -156,6 +188,31 @@ function patchPremiseRow(wrapper, premise, index, callbacks) {
   const input = wrapper.querySelector('.premise-main > .premise-row > textarea');
   if (input && document.activeElement !== input) {
     input.value = premise.text;
+  }
+
+  // Fallacy select
+  const fallacySelect = wrapper.querySelector('.premise-main > .premise-row > .fallacy-select');
+  if (fallacySelect && document.activeElement !== fallacySelect) {
+    fallacySelect.value = premise.fallacy || 'none';
+    setClass(fallacySelect, 'has-fallacy', premise.fallacy && premise.fallacy !== 'none');
+  }
+
+  // Fallacy badge
+  const existingBadge = wrapper.querySelector(':scope > .fallacy-badge');
+  if (premise.fallacy && premise.fallacy !== 'none') {
+    const f = FALLACIES.find(f => f.id === premise.fallacy);
+    const badgeText = f ? f.label : premise.fallacy;
+    if (existingBadge) {
+      existingBadge.textContent = badgeText;
+    } else {
+      const badge = document.createElement('span');
+      badge.className = 'fallacy-badge visible';
+      badge.textContent = badgeText;
+      const subContainer = wrapper.querySelector('.sub-premises-container');
+      wrapper.insertBefore(badge, subContainer);
+    }
+  } else if (existingBadge) {
+    existingBadge.remove();
   }
 
   // Patch sub-premises in place to preserve focus

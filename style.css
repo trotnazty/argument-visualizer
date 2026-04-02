@@ -331,6 +331,56 @@ body {
 
 .remove-btn:hover { opacity: 1; color: var(--red); }
 
+/* Fallacy tagging */
+.fallacy-select {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2px 4px;
+  font-size: 0.65rem;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  min-width: 28px;
+  max-width: 28px;
+  transition: border-color var(--transition), color var(--transition), max-width var(--transition);
+  appearance: none;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.fallacy-select:focus {
+  max-width: 160px;
+  border-color: var(--accent);
+  color: var(--text);
+}
+.fallacy-select.has-fallacy {
+  border-color: var(--red);
+  color: var(--red);
+  max-width: 28px;
+}
+.fallacy-select.has-fallacy:focus {
+  max-width: 160px;
+}
+
+.fallacy-badge {
+  display: none;
+  font-size: 0.65rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--red) 30%, transparent);
+  border-radius: var(--radius);
+  padding: 1px 8px;
+  margin-left: 34px;
+  margin-top: 2px;
+  width: fit-content;
+}
+.fallacy-badge.visible {
+  display: inline-block;
+}
+
 /* Sub-premises */
 .sub-premises-container {
   display: flex;
