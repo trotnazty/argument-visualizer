@@ -452,6 +452,64 @@ export function renderBoard(root, states, callbackSets, options = {}) {
 
     dualPanel.append(oursPanel, opponentPanel);
     argContent.appendChild(dualPanel);
+
+    // ── Argument-tab Notepad ─────────────────────────────────────────────
+    const argNotes = document.createElement('div');
+    argNotes.className = 'notes-panel arg-notepad';
+
+    const argNotepadTitle = document.createElement('div');
+    argNotepadTitle.className = 'notes-section-title';
+    argNotepadTitle.textContent = 'Notepad';
+    argNotes.appendChild(argNotepadTitle);
+
+    const argToolbar = document.createElement('div');
+    argToolbar.className = 'rich-toolbar';
+
+    const argActions = [
+      { cmd: 'bold', icon: 'B', title: 'Bold', cls: 'rich-btn-bold' },
+      { cmd: 'italic', icon: 'I', title: 'Italic', cls: 'rich-btn-italic' },
+      { cmd: 'underline', icon: 'U', title: 'Underline', cls: 'rich-btn-underline' },
+      { cmd: 'strikeThrough', icon: 'S', title: 'Strikethrough', cls: 'rich-btn-strike' },
+      { sep: true },
+      { cmd: 'insertUnorderedList', icon: '•', title: 'Bullet list' },
+      { cmd: 'insertOrderedList', icon: '1.', title: 'Numbered list' },
+      { sep: true },
+      { cmd: 'formatBlock', value: 'H3', icon: 'H', title: 'Heading' },
+      { cmd: 'formatBlock', value: 'BLOCKQUOTE', icon: '"', title: 'Quote' },
+      { sep: true },
+      { cmd: 'removeFormat', icon: '⌧', title: 'Clear formatting' },
+    ];
+
+    argActions.forEach(a => {
+      if (a.sep) {
+        const sep = document.createElement('span');
+        sep.className = 'rich-sep';
+        argToolbar.appendChild(sep);
+        return;
+      }
+      const btn = document.createElement('button');
+      btn.className = `rich-btn${a.cls ? ' ' + a.cls : ''}`;
+      btn.textContent = a.icon;
+      btn.title = a.title;
+      btn.tabIndex = -1;
+      btn.addEventListener('mousedown', e => {
+        e.preventDefault();
+        document.execCommand(a.cmd, false, a.value || null);
+      });
+      argToolbar.appendChild(btn);
+    });
+
+    argNotes.appendChild(argToolbar);
+
+    const argEditor = document.createElement('div');
+    argEditor.className = 'notes-editor';
+    argEditor.contentEditable = 'true';
+    argEditor.spellcheck = true;
+    argEditor.dataset.placeholder = 'Take notes here…';
+
+    argNotes.appendChild(argEditor);
+    argContent.appendChild(argNotes);
+
     root.appendChild(argContent);
 
     // ── Visuals tab content ───────────────────────────────────────────────
@@ -633,6 +691,8 @@ export function renderBoard(root, states, callbackSets, options = {}) {
         const tabId = refreshBtn.dataset.tabRefresh;
         if (tabId === 'argument' && options.onResetArgument) {
           options.onResetArgument();
+          const argNotepad = qs(root, '#tab-argument .notes-editor');
+          if (argNotepad) argNotepad.innerHTML = '';
         } else if (tabId === 'visuals') {
           refreshVisuals();
         } else {
