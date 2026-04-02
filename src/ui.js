@@ -362,7 +362,7 @@ function createSidePanel(side, state, callbacks) {
   // Panel title
   const title = document.createElement('div');
   title.className = `side-panel-title side-title-${side}`;
-  title.textContent = side === 'ours' ? 'Our Side' : 'Guest';
+  title.textContent = side === 'ours' ? 'Host' : 'Guest';
   panel.appendChild(title);
 
   // Type selector
